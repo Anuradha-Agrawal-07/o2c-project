@@ -55,3 +55,8 @@ o2c-project/
 - Delivery can be posted only after credit approval.
 - Invoice can be created only after delivery.
 - Payment can be recorded only after invoice creation.
+
+5. Screenshots
+<img width="1046" height="648" alt="Screenshot 2026-04-21 192115" src="https://github.com/user-attachments/assets/ca1aac18-c971-41e9-b596-ffecaaee808b" />
+<img width="1008" height="639" alt="Screenshot 2026-04-21 192126" src="https://github.com/user-attachments/assets/ff116e66-bb3b-4ac6-93cc-621c9fac8a29" />
+
