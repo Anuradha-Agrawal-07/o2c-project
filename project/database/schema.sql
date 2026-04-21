@@ -1,0 +1,64 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_code TEXT NOT NULL UNIQUE,
+    customer_name TEXT NOT NULL,
+    city TEXT,
+    credit_limit REAL NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_code TEXT NOT NULL UNIQUE,
+    product_name TEXT NOT NULL,
+    uom TEXT,
+    price REAL NOT NULL DEFAULT 0,
+    stock REAL NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sales_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    so_number TEXT NOT NULL UNIQUE,
+    customer_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity REAL NOT NULL,
+    total_amount REAL NOT NULL,
+    credit_status TEXT NOT NULL DEFAULT 'PENDING_REVIEW',
+    status TEXT NOT NULL DEFAULT 'CREATED',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS deliveries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    delivery_number TEXT NOT NULL UNIQUE,
+    sales_order_id INTEGER NOT NULL UNIQUE,
+    quantity_delivered REAL NOT NULL,
+    status TEXT NOT NULL DEFAULT 'DELIVERED',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS invoices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_number TEXT NOT NULL UNIQUE,
+    sales_order_id INTEGER NOT NULL UNIQUE,
+    amount REAL NOT NULL,
+    status TEXT NOT NULL DEFAULT 'OPEN',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    payment_number TEXT NOT NULL UNIQUE,
+    invoice_id INTEGER NOT NULL UNIQUE,
+    amount REAL NOT NULL,
+    status TEXT NOT NULL DEFAULT 'RECEIVED',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+);

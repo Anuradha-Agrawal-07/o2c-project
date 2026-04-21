@@ -1,0 +1,57 @@
+# Order to Cash (O2C) Simulation Project
+
+This is a complete end-to-end O2C simulation built with Flask, SQLite, and a browser-based dashboard.
+
+## Workflow
+Customer → Product → Sales Order → Credit Approval → Delivery → Invoice → Payment
+
+## Features
+- Add customers
+- Add products
+- Create sales orders
+- Approve credit
+- Post deliveries
+- Generate invoices
+- Record payments
+- View master data and document overview
+- Reset all data
+
+## Project Structure
+```text
+o2c-project/
+├── project/
+│   ├── backend/
+│   │   └── app.py
+│   ├── frontend/
+│   │   └── o2c-dashboard.html
+│   └── database/
+│       └── schema.sql
+├── docs/
+│   └── project-report.md
+└── README.md
+```
+
+## How to Run
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Open the backend folder and run:
+   ```bash
+   python app.py
+   ```
+
+3. Open the browser:
+   ```text
+   http://127.0.0.1:5000
+   ```
+
+4. Click **Initialize Database**.
+
+## Notes
+- The database is stored in SQLite.
+- Use unique customer codes and product codes.
+- Delivery can be posted only after credit approval.
+- Invoice can be created only after delivery.
+- Payment can be recorded only after invoice creation.

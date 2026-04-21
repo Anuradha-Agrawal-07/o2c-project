@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O2C Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    header {
+      background: #2563eb;
+      color: white;
+      padding: 20px;
+    }
+
+    main {
+      max-width: 1300px;
+      margin: 20px auto;
+      padding: 0 16px 30px;
+    }
+
+    .process-flow-card,
+    .card,
+    .section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .process-flow-card {
+      margin: 20px auto;
+      padding: 20px 24px;
+      border-left: 6px solid #0f766e;
+      max-width: 1300px;
+    }
+
+    .process-flow-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+
+    .process-flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      min-width: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0.45;
+      transition: 0.25s ease;
+    }
+
+    .flow-step.active,
+    .flow-step.completed {
+      opacity: 1;
+    }
+
+    .flow-step.active {
+      transform: scale(1.03);
+    }
+
+    .flow-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #dbeafe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #1d4ed8;
+      margin-bottom: 8px;
+    }
+
+    .flow-step.active .flow-circle {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.14);
+    }
+
+    .flow-step.completed .flow-circle {
+      background: #059669;
+      color: white;
+    }
+
+    .flow-label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .flow-line {
+      flex: 1;
+      min-width: 24px;
+      height: 4px;
+      background: #dbe2ee;
+      border-radius: 6px;
+    }
+
+    .status-message {
+      max-width: 1300px;
+      margin: 0 auto 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .status-message.success {
+      background: #ecfdf5;
+      color: #047857;
+      border-left: 5px solid #10b981;
+    }
+
+    .status-message.error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-left: 5px solid #ef4444;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      padding: 16px;
+    }
+
+    .section {
+      margin-top: 20px;
+      padding: 16px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    button {
+      background: #0f766e;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #115e59;
+    }
+
+    .danger {
+      background: #b91c1c;
+    }
+
+    .danger:hover {
+      background: #991b1b;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 100%;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 700;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .flow-line {
+        min-width: 12px;
+      }
+
+      .flow-label {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Order to Cash (O2C)</h1>
+    <p>End-to-end simulation from customer order to payment collection</p>
+  </header>
+
+  <div class="process-flow-card">
+    <div class="process-flow-title">O2C Workflow</div>
+    <div class="process-flow" id="processFlow">
+      <div class="flow-step active" data-step="customer">
+        <div class="flow-circle">1</div>
+        <div class="flow-label">Customer</div>
+      </div>
+      <div class="flow-line"></div>
+
+      <div class="flow-step" data-step="product">
+        <div class="flow-circle">2</div>
+        <div class="flow-label">Product</div>
+      </div>
+      <div class="flow-line"></div>
+
+      <div class="flow-step" data-step="so">
+        <div class="flow-circle">3</div>
+        <div class="flow-label">Sales Order</div>
+      </div>
+      <div class="flow-line"></div>
+
+      <div class="flow-step" data-step="credit">
+        <div class="flow-circle">4</div>
+        <div class="flow-label">Credit</div>
+      </div>
+      <div class="flow-line"></div>
+
+      <div class="flow-step" data-step="delivery">
+        <div class="flow-circle">5</div>
+        <div class="flow-label">Delivery</div>
+      </div>
+      <div class="flow-line"></div>
+
+      <div class="flow-step" data-step="invoice">
+        <div class="flow-circle">6</div>
+        <div class="flow-label">Invoice</div>
+      </div>
+      <div class="flow-line"></div>
+
+      <div class="flow-step" data-step="payment">
+        <div class="flow-circle">7</div>
+        <div class="flow-label">Payment</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="statusMessage" class="status-message"></div>
+
+  <main>
+    <div class="grid" id="stats"></div>
+
+    <div class="grid section">
+      <div class="card">
+        <h2>Initialize</h2>
+        <button onclick="initDb()">Initialize Database</button>
+        <button onclick="resetDb()" class="danger">Reset All Data</button>
+        <p id="initMsg" class="muted"></p>
+      </div>
+
+      <div class="card">
+        <h2>Add Customer</h2>
+        <input id="customer_code" placeholder="Customer Code" />
+        <input id="customer_name" placeholder="Customer Name" />
+        <input id="customer_city" placeholder="City" />
+        <input id="customer_credit" type="number" step="0.01" placeholder="Credit Limit" />
+        <button onclick="addCustomer()">Save Customer</button>
+      </div>
+
+      <div class="card">
+        <h2>Add Product</h2>
+        <input id="product_code" placeholder="Product Code" />
+        <input id="product_name" placeholder="Product Name" />
+        <input id="product_uom" placeholder="UOM" />
+        <input id="product_price" type="number" step="0.01" placeholder="Price" />
+        <input id="product_stock" type="number" step="0.01" placeholder="Stock" />
+        <button onclick="addProduct()">Save Product</button>
+      </div>
+    </div>
+
+    <div class="grid section">
+      <div class="card">
+        <h2>Create Sales Order</h2>
+        <select id="so_customer"></select>
+        <select id="so_product"></select>
+        <input id="so_qty" type="number" step="0.01" placeholder="Quantity" />
+        <button onclick="createSO()">Create Sales Order</button>
+      </div>
+
+      <div class="card">
+        <h2>Credit Approval</h2>
+        <select id="credit_so"></select>
+        <button onclick="approveCredit()">Approve Credit</button>
+      </div>
+
+      <div class="card">
+        <h2>Post Delivery</h2>
+        <select id="delivery_so"></select>
+        <button onclick="postDelivery()">Post Delivery</button>
+      </div>
+
+      <div class="card">
+        <h2>Create Invoice</h2>
+        <select id="invoice_so"></select>
+        <button onclick="createInvoice()">Create Invoice</button>
+      </div>
+
+      <div class="card">
+        <h2>Receive Payment</h2>
+        <select id="payment_invoice"></select>
+        <button onclick="receivePayment()">Receive Payment</button>
+      </div>
+    </div>
+
+    <div class="section card">
+      <h2>Master Data</h2>
+      <div class="grid">
+        <div class="table-wrap">
+          <h3>Customers</h3>
+          <table id="customerTable"></table>
+        </div>
+
+        <div class="table-wrap">
+          <h3>Products</h3>
+          <table id="productTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="section card">
+      <h2>Document Overview</h2>
+      <div class="grid">
+        <div class="table-wrap">
+          <h3>Sales Orders</h3>
+          <table id="soTable"></table>
+        </div>
+
+        <div class="table-wrap">
+          <h3>Deliveries</h3>
+          <table id="deliveryTable"></table>
+        </div>
+
+        <div class="table-wrap">
+          <h3>Invoices</h3>
+          <table id="invoiceTable"></table>
+        </div>
+
+        <div class="table-wrap">
+          <h3>Payments</h3>
+          <table id="paymentTable"></table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API = '/api';
+
+    const els = {
+      stats: document.getElementById('stats'),
+      statusMessage: document.getElementById('statusMessage'),
+      initMsg: document.getElementById('initMsg'),
+
+      customerCode: document.getElementById('customer_code'),
+      customerName: document.getElementById('customer_name'),
+      customerCity: document.getElementById('customer_city'),
+      customerCredit: document.getElementById('customer_credit'),
+
+      productCode: document.getElementById('product_code'),
+      productName: document.getElementById('product_name'),
+      productUom: document.getElementById('product_uom'),
+      productPrice: document.getElementById('product_price'),
+      productStock: document.getElementById('product_stock'),
+
+      soCustomer: document.getElementById('so_customer'),
+      soProduct: document.getElementById('so_product'),
+      soQty: document.getElementById('so_qty'),
+
+      creditSo: document.getElementById('credit_so'),
+      deliverySo: document.getElementById('delivery_so'),
+      invoiceSo: document.getElementById('invoice_so'),
+      paymentInvoice: document.getElementById('payment_invoice')
+    };
+
+    function normalizeList(data) {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.items)) return data.items;
+      if (data && Array.isArray(data.data)) return data.data;
+      return [];
+    }
+
+    function showStatus(message, type = 'success') {
+      const box = els.statusMessage;
+      box.className = `status-message ${type}`;
+      box.textContent = message;
+      box.style.display = 'block';
+      clearTimeout(box._timer);
+      box._timer = setTimeout(() => {
+        box.style.display = 'none';
+      }, 4000);
+    }
+
+    function updateFlow(step) {
+      const order = ['customer', 'product', 'so', 'credit', 'delivery', 'invoice', 'payment'];
+      const idx = order.indexOf(step);
+      document.querySelectorAll('.flow-step').forEach((el, i) => {
+        el.classList.remove('active', 'completed');
+        if (i < idx) el.classList.add('completed');
+        else if (i === idx) el.classList.add('active');
+      });
+    }
+
+    function detectStep(customers, products, orders, deliveries, invoices, payments) {
+      if (payments.length) return 'payment';
+      if (invoices.length) return 'invoice';
+      if (deliveries.length) return 'delivery';
+      if (orders.length) return 'so';
+      if (products.length) return 'product';
+      return 'customer';
+    }
+
+    async function api(path, method = 'GET', body = null) {
+      const options = {
+        method,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (body !== null) options.body = JSON.stringify(body);
+
+      const response = await fetch(API + path, options);
+      const text = await response.text();
+
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { message: text || `HTTP ${response.status}` };
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || `HTTP ${response.status}`);
+      }
+
+      return data;
+    }
+
+    function renderTable(tableId, rows, cols, emptyText = 'No records found') {
+      const table = document.getElementById(tableId);
+      const head = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+
+      if (!rows.length) {
+        table.innerHTML = `${head}<tr><td colspan="${cols.length}" style="text-align:center;color:#6b7280;">${emptyText}</td></tr>`;
+        return;
+      }
+
+      const body = rows.map(row => `<tr>${cols.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`).join('');
+      table.innerHTML = head + body;
+    }
+
+    function renderSelect(selectEl, rows, valueKey, labelKey, emptyLabel) {
+      if (!rows.length) {
+        selectEl.innerHTML = `<option value="">${emptyLabel}</option>`;
+        return;
+      }
+      selectEl.innerHTML = `<option value="">Select</option>` + rows.map(r =>
+        `<option value="${r[valueKey]}">${r[labelKey]}</option>`
+      ).join('');
+    }
+
+    async function initDb() {
+      try {
+        const result = await api('/init', 'POST', {});
+        els.initMsg.textContent = result.message || 'Database initialized successfully';
+        showStatus(result.message || 'Database initialized successfully');
+        await loadAll();
+      } catch (error) {
+        showStatus(error.message || 'Failed to initialize database', 'error');
+      }
+    }
+
+    async function resetDb() {
+      const ok = confirm('This will delete all O2C records. Continue?');
+      if (!ok) return;
+      try {
+        const result = await api('/reset', 'POST', {});
+        showStatus(result.message || 'All data deleted successfully');
+        await loadAll();
+      } catch (error) {
+        showStatus(error.message || 'Failed to reset database', 'error');
+      }
+    }
+
+    async function addCustomer() {
+      try {
+        const payload = {
+          customer_code: els.customerCode.value.trim(),
+          customer_name: els.customerName.value.trim(),
+          city: els.customerCity.value.trim(),
+          credit_limit: Number(els.customerCredit.value)
+        };
+
+        if (!payload.customer_code || !payload.customer_name) {
+          throw new Error('Customer code and customer name are required');
+        }
+        if (Number.isNaN(payload.credit_limit) || payload.credit_limit < 0) {
+          throw new Error('Enter a valid credit limit');
+        }
+
+        const result = await api('/customers', 'POST', payload);
+        showStatus(result.message || 'Customer added successfully');
+        els.customerCode.value = '';
+        els.customerName.value = '';
+        els.customerCity.value = '';
+        els.customerCredit.value = '';
+        await loadAll();
+      } catch (error) {
+        showStatus(error.message || 'Failed to add customer', 'error');
+      }
+    }
+
+    async function addProduct() {
+      try {
+        const payload = {
+          product_code: els.productCode.value.trim(),
+          product_name: els.productName.value.trim(),
+          uom: els.productUom.value.trim(),
+          price: Number(els.productPrice.value),
+          stock: Number(els.productStock.value)
+        };
+
+        if (!payload.product_code || !payload.product_name) {
+          throw new Error('Product code and product name are required');
+        }
+        if (Number.isNaN(payload.price) || payload.price < 0) {
+          throw new Error('Enter a valid product price');
+        }
+        if (Number.isNaN(payload.stock) || payload.stock < 0) {
+          throw new Error('Enter a valid stock value');
+        }
+
+        const result = await api('/products', 'POST', payload);
+        showStatus(result.message || 'Product added successfully');
+        els.productCode.value = '';
+        els.productName.value = '';
+        els.productUom.value = '';
+        els.productPrice.value = '';
+        els.productStock.value = '';
+        await loadAll();
+      } catch (error) {
+        showStatus(error.message || 'Failed to add product', 'error');
+      }
+    }
+
+    async function createSO() {
+      try {
+        const payload = {
+          customer_id: Number(els.soCustomer.value),
+          product_id: Number(els.soProduct.value),
+          quantity: Number(els.soQty.value)
+        };
+
+        if (!payload.customer_id) throw new Error('Select a customer');
+        if (!payload.product_id) throw new Error('Select a product');
+        if (Number.isNaN(payload.quantity) || payload.quantity <= 0) throw new Error('Enter a valid quantity');
+
+        const result = await api('/sales-orders', 'POST', payload);
+        showStatus(result.message || 'Sales order created successfully');
+        els.soQty.value = '';
+        await loadAll();
+        updateFlow('so');
+      } catch (error) {
+        showStatus(error.message || 'Failed to create sales order', 'error');
+      }
+    }
+
+    async function approveCredit() {
+      try {
+        const sales_order_id = Number(els.creditSo.value);
+        if (!sales_order_id) throw new Error('Select a sales order');
+
+        const result = await api('/credit-approve', 'POST', { sales_order_id });
+        showStatus(result.message || 'Credit approved successfully');
+        await loadAll();
+        updateFlow('credit');
+      } catch (error) {
+        showStatus(error.message || 'Failed to approve credit', 'error');
+      }
+    }
+
+    async function postDelivery() {
+      try {
+        const sales_order_id = Number(els.deliverySo.value);
+        if (!sales_order_id) throw new Error('Select a sales order');
+
+        const result = await api('/deliveries', 'POST', { sales_order_id });
+        showStatus(result.message || 'Delivery posted successfully');
+        await loadAll();
+        updateFlow('delivery');
+      } catch (error) {
+        showStatus(error.message || 'Failed to post delivery', 'error');
+      }
+    }
+
+    async function createInvoice() {
+      try {
+        const sales_order_id = Number(els.invoiceSo.value);
+        if (!sales_order_id) throw new Error('Select a sales order');
+
+        const result = await api('/invoices', 'POST', { sales_order_id });
+        showStatus(result.message || 'Invoice created successfully');
+        await loadAll();
+        updateFlow('invoice');
+      } catch (error) {
+        showStatus(error.message || 'Failed to create invoice', 'error');
+      }
+    }
+
+    async function receivePayment() {
+      try {
+        const invoice_id = Number(els.paymentInvoice.value);
+        if (!invoice_id) throw new Error('Select an invoice');
+
+        const result = await api('/payments', 'POST', { invoice_id });
+        showStatus(result.message || 'Payment received successfully');
+        await loadAll();
+        updateFlow('payment');
+      } catch (error) {
+        showStatus(error.message || 'Failed to receive payment', 'error');
+      }
+    }
+
+    async function loadAll() {
+      try {
+        const [
+          dashRaw,
+          customersRaw,
+          productsRaw,
+          ordersRaw,
+          deliveriesRaw,
+          invoicesRaw,
+          paymentsRaw
+        ] = await Promise.all([
+          api('/dashboard'),
+          api('/customers'),
+          api('/products'),
+          api('/sales-orders'),
+          api('/deliveries'),
+          api('/invoices'),
+          api('/payments')
+        ]);
+
+        const dash = dashRaw || {};
+        const customers = normalizeList(customersRaw);
+        const products = normalizeList(productsRaw);
+        const orders = normalizeList(ordersRaw);
+        const deliveries = normalizeList(deliveriesRaw);
+        const invoices = normalizeList(invoicesRaw);
+        const payments = normalizeList(paymentsRaw);
+
+        els.stats.innerHTML = Object.entries(dash).map(([k, v]) =>
+          `<div class="card"><h2>${v}</h2><p>${k.toUpperCase()}</p></div>`
+        ).join('');
+
+        renderSelect(els.soCustomer, customers, 'id', 'customer_name', 'No customers found');
+        renderSelect(els.soProduct, products, 'id', 'product_name', 'No products found');
+        renderSelect(
+  els.creditSo,
+  orders.filter(o => o.credit_status === 'PENDING_REVIEW' || o.status === 'CREATED'),
+  'id',
+  'so_number',
+  'No pending orders'
+);
+        renderSelect(els.deliverySo, orders.filter(o => o.credit_status === 'APPROVED' && o.status !== 'DELIVERED'), 'id', 'so_number', 'No deliverable orders');
+        renderSelect(els.invoiceSo, orders.filter(o => o.status === 'DELIVERED'), 'id', 'so_number', 'No invoiceable orders');
+        renderSelect(els.paymentInvoice, invoices.filter(i => i.status === 'OPEN'), 'id', 'invoice_number', 'No open invoices');
+
+        renderTable('customerTable', customers, ['customer_code', 'customer_name', 'city', 'credit_limit']);
+        renderTable('productTable', products, ['product_code', 'product_name', 'uom', 'price', 'stock']);
+        renderTable('soTable', orders, ['so_number', 'customer_name', 'product_name', 'quantity', 'total_amount', 'credit_status', 'status']);
+        renderTable('deliveryTable', deliveries, ['delivery_number', 'so_number', 'customer_name', 'product_name', 'quantity_delivered', 'status']);
+        renderTable('invoiceTable', invoices, ['invoice_number', 'so_number', 'customer_name', 'amount', 'status']);
+        renderTable('paymentTable', payments, ['payment_number', 'invoice_number', 'customer_name', 'amount', 'status']);
+
+        updateFlow(detectStep(customers, products, orders, deliveries, invoices, payments));
+      } catch (error) {
+        showStatus(error.message || 'Failed to load dashboard data', 'error');
+        console.error(error);
+      }
+    }
+
+    window.initDb = initDb;
+    window.resetDb = resetDb;
+    window.addCustomer = addCustomer;
+    window.addProduct = addProduct;
+    window.createSO = createSO;
+    window.approveCredit = approveCredit;
+    window.postDelivery = postDelivery;
+    window.createInvoice = createInvoice;
+    window.receivePayment = receivePayment;
+
+    loadAll();
+  </script>
+</body>
+</html>
